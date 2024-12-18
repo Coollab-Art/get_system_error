@@ -5,14 +5,13 @@
 
 namespace Cool {
 
-auto get_system_error() -> std::string
+static auto get_system_error_impl(DWORD error_id) -> std::string
 {
-    DWORD const error_id = ::GetLastError();
     if (error_id == 0)
         return "";
 
     LPSTR      message_buffer{nullptr};
-    auto const size = FormatMessageA(
+    auto const size = FormatMessage(
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr,
         error_id,
@@ -27,6 +26,16 @@ auto get_system_error() -> std::string
     auto message = std::string{message_buffer, size};
     LocalFree(message_buffer);
     return message;
+}
+
+auto get_system_error() -> std::string
+{
+    return get_system_error_impl(::GetLastError());
+}
+
+auto get_system_error(HRESULT hr) -> std::string
+{
+    return get_system_error_impl(static_cast<DWORD>(hr));
 }
 
 } // namespace Cool
