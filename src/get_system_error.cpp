@@ -35,7 +35,7 @@ namespace Cool {
 
 auto get_system_error() -> std::string
 {
-    auto message_buffer = std::string{128, '\0'}; // Start with an initial size of 128 characters
+    auto message_buffer = std::string(128, '\0'); // Start with an initial size of 128 characters
     while (true)
     {
         int const result = strerror_r(errno, &message_buffer[0], message_buffer.size());
