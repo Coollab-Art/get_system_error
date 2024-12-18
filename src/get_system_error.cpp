@@ -51,7 +51,7 @@ auto get_system_error() -> std::string
 
 #ifdef _GNU_SOURCE
     // GNU version of strerror_r returns a char*
-    char* const result = strerror_r(errno, message_buffer.data(), message_buffer.size());
+    char* const result = strerror_r(errno, &message_buffer[0], message_buffer.size());
     // The result may not use the provided buffer, but an internal buffer instead, so return a copy of that buffer
     if (result != message_buffer.data())
         return result;
@@ -59,7 +59,7 @@ auto get_system_error() -> std::string
     // POSIX version of strerror_r returns an int and fills the buffer
     while (true) // Retry until the buffer is big enough
     {
-        int const result = strerror_r(errno, message_buffer.data(), message_buffer.size());
+        int const result = strerror_r(errno, &message_buffer[0], message_buffer.size());
         if (result == 0)
             break; // Success
         else if (result == ERANGE)
