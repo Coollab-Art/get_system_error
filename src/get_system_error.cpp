@@ -41,33 +41,37 @@ auto get_system_error(HRESULT hr) -> std::string
 } // namespace Cool
 
 #else
-#include <cerrno>
+#include <cstring>
 
 namespace Cool {
 
 auto get_system_error() -> std::string
 {
-    auto message_buffer = std::string(128, '\0'); // Start with an initial size of 128 characters
-    while (true)
+    auto message_buffer = std::string(128, '\0'); // Start with a reasonable buffer size
+
+#ifdef _GNU_SOURCE
+    // GNU version of strerror_r returns a char*
+    char* const result = strerror_r(errno, message_buffer.data(), message_buffer.size());
+    // The result may not use the provided buffer, but an internal buffer instead, so return a copy of that buffer
+    if (result != message_buffer.data())
+        return result;
+#else
+    // POSIX version of strerror_r returns an int and fills the buffer
+    while (true) // Retry until the buffer is big enough
     {
-        int const result = strerror_r(errno, &message_buffer[0], message_buffer.size());
+        int const result = strerror_r(errno, message_buffer.data(), message_buffer.size());
         if (result == 0)
-        {
-            // Success: Trim any excess null characters and return the message
-            message_buffer.resize(std::strlen(message_buffer.c_str()));
-            return message_buffer;
-        }
+            break; // Success
         else if (result == ERANGE)
-        {
-            // Buffer too small: Double the size and retry
             message_buffer.resize(message_buffer.size() * 2);
-        }
         else
-        {
-            // Unknown error: Return a generic error message
             return "Unknown error code: " + std::to_string(errno);
-        }
     }
+#endif
+
+    // Resize the string to fit the actual message length
+    message_buffer.resize(std::strlen(message_buffer.c_str()));
+    return message_buffer;
 }
 
 } // namespace Cool
