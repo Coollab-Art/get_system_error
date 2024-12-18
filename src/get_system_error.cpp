@@ -11,7 +11,7 @@ static auto get_system_error_impl(DWORD error_id) -> std::string
         return "";
 
     LPSTR      message_buffer{nullptr};
-    auto const size = FormatMessage(
+    auto const size = FormatMessage( // We use FormatMessage because it gives nicer error messages than strerror(errno)
         FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
         nullptr,
         error_id,
