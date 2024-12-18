@@ -21,6 +21,8 @@ auto get_system_error() -> std::string
         0,
         nullptr
     );
+    if (message_buffer == nullptr)
+        return "Unknown error code: " + std::to_string(error_id);
 
     auto message = std::string{message_buffer, size};
     LocalFree(message_buffer);
@@ -30,6 +32,7 @@ auto get_system_error() -> std::string
 } // namespace Cool
 
 #else
+#include <cerrno>
 
 namespace Cool {
 
